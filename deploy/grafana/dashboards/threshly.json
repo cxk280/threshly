@@ -1,0 +1,105 @@
+{
+  "title": "Threshly — Batch Inference",
+  "uid": "threshly-overview",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "time": { "from": "now-15m", "to": "now" },
+  "refresh": "5s",
+  "templating": { "list": [] },
+  "annotations": { "list": [] },
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Active workers",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "threshly-prom" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" } }, "overrides": [] },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "threshly-prom" }, "expr": "threshly_active_workers" }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Preemptions survived",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "threshly-prom" },
+      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "green" } }, "overrides": [] },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "threshly-prom" }, "expr": "threshly_leases_reclaimed_total" }
+      ]
+    },
+    {
+      "type": "gauge",
+      "title": "Prefix-cache hit rate",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "threshly-prom" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent", "min": 0, "max": 100,
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "red", "value": null }, { "color": "yellow", "value": 50 }, { "color": "green", "value": 80 }
+          ] }
+        },
+        "overrides": []
+      },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "threshly-prom" }, "expr": "100 * threshly_prefix_cache_hits_total / clamp_min(threshly_prefix_cache_hits_total + threshly_prefix_cache_misses_total, 1)" }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Estimated cost (USD)",
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "threshly-prom" },
+      "fieldConfig": { "defaults": { "unit": "currencyUSD", "decimals": 4, "color": { "mode": "fixed", "fixedColor": "blue" } }, "overrides": [] },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "threshly-prom" }, "expr": "threshly_estimated_cost_usd" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Throughput",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "datasource": { "type": "prometheus", "uid": "threshly-prom" },
+      "fieldConfig": { "defaults": { "custom": { "drawStyle": "line", "fillOpacity": 10 } }, "overrides": [] },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "threshly-prom" }, "expr": "rate(threshly_output_tokens_total[1m])", "legendFormat": "output tok/s" },
+        { "refId": "B", "datasource": { "type": "prometheus", "uid": "threshly-prom" }, "expr": "rate(threshly_requests_completed_total[1m])", "legendFormat": "requests/s" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Queue depth",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "datasource": { "type": "prometheus", "uid": "threshly-prom" },
+      "fieldConfig": { "defaults": { "custom": { "drawStyle": "line", "fillOpacity": 20, "stacking": { "mode": "normal" } } }, "overrides": [] },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "threshly-prom" }, "expr": "threshly_queue_pending", "legendFormat": "pending" },
+        { "refId": "B", "datasource": { "type": "prometheus", "uid": "threshly-prom" }, "expr": "threshly_queue_leased", "legendFormat": "leased" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Prefix cache hits vs misses (rate)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "datasource": { "type": "prometheus", "uid": "threshly-prom" },
+      "fieldConfig": { "defaults": { "custom": { "drawStyle": "line", "fillOpacity": 10 } }, "overrides": [] },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "threshly-prom" }, "expr": "rate(threshly_prefix_cache_hits_total[1m])", "legendFormat": "hits/s" },
+        { "refId": "B", "datasource": { "type": "prometheus", "uid": "threshly-prom" }, "expr": "rate(threshly_prefix_cache_misses_total[1m])", "legendFormat": "misses/s" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Completed vs failed (total)",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "datasource": { "type": "prometheus", "uid": "threshly-prom" },
+      "fieldConfig": { "defaults": { "custom": { "drawStyle": "line", "fillOpacity": 10 } }, "overrides": [] },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "threshly-prom" }, "expr": "threshly_requests_completed_total", "legendFormat": "completed" },
+        { "refId": "B", "datasource": { "type": "prometheus", "uid": "threshly-prom" }, "expr": "threshly_requests_failed_total", "legendFormat": "failed" }
+      ]
+    }
+  ]
+}

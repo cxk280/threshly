@@ -38,11 +38,35 @@ class S3BlobStore:
 
     def __init__(self, bucket: str, prefix: str = "threshly/") -> None:
         import boto3  # imported lazily so the core install stays light
+        from botocore.config import Config
 
         self.bucket = bucket
         self.prefix = prefix
         endpoint = os.environ.get("THRESHLY_S3_ENDPOINT")  # set for MinIO
-        self.client = boto3.client("s3", endpoint_url=endpoint)
+        # MinIO and most self-hosted S3 need path-style addressing (bucket in the path, not host).
+        config = Config(s3={"addressing_style": "path"}) if endpoint else None
+        self.client = boto3.client("s3", endpoint_url=endpoint, config=config)
+        if endpoint:
+            self._ensure_bucket(bucket)
+
+    def _ensure_bucket(self, bucket: str, attempts: int = 30, delay: float = 1.0) -> None:
+        """Create the bucket if needed, tolerating a MinIO/S3 endpoint still coming up."""
+        import time
+
+        last: Exception | None = None
+        for _ in range(attempts):
+            try:
+                self.client.head_bucket(Bucket=bucket)
+                return
+            except Exception as e:  # not found, or endpoint not ready yet
+                last = e
+                try:
+                    self.client.create_bucket(Bucket=bucket)
+                    return
+                except Exception as e2:
+                    last = e2
+                    time.sleep(delay)
+        raise RuntimeError(f"could not reach/create S3 bucket {bucket!r}: {last}")
 
     def _key(self, key: str) -> str:
         return f"{self.prefix}{key}"

@@ -120,7 +120,24 @@ threshly results <batch-id> -o out.jsonl
 ```
 
 Now `kill` one of the workers mid-run — the batch still finishes, exactly once. Try `kill -9` to see
-the reaper reclaim its in-flight work.
+the reaper reclaim its in-flight work. Or run the whole thing as one command:
+
+```bash
+bash examples/demo.sh    # coordinator + 2 workers, kills one mid-run, asserts exactly-once
+```
+
+## Full stack (Postgres + S3 + Prometheus + Grafana)
+
+Run Threshly the way you'd run it in production — Postgres for state, MinIO (S3) for blobs, and a
+Grafana dashboard — still GPU-free via the mock engine:
+
+```bash
+docker compose -f deploy/docker-compose.yml up --build --scale worker=5
+```
+
+Coordinator on :8080, Prometheus on :9090, Grafana on :3000 (the "Threshly — Batch Inference"
+dashboard auto-loads with live throughput, prefix-cache hit rate, queue depth, preemptions
+survived, and cost). See [`deploy/README.md`](deploy/README.md) for details and the GPU path.
 
 ## Running on real GPUs (vLLM)
 
