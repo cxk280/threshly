@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.env
+
+# Tooling
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Threshly runtime state
+*.db
+*.sqlite3
+threshly_data/
+.threshly/
+
+# OS / editor
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# CI workflow kept locally; OAuth token lacks GitHub "workflow" scope to push it.
+.github/
